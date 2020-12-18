@@ -50,6 +50,6 @@
 
   initialize();
 
-  const observer = new MutationObserver();
+  const observer = new MutationObserver(watchForInitialize);
   observer.observe(bodyNode, { attributes: true });
 })();

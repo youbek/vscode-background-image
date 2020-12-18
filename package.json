@@ -51,6 +51,7 @@
 		"webpack-cli": "^4.2.0"
 	},
 	"dependencies": {
+		"require-main-filename": "^2.0.0",
 		"upath": "^2.0.1"
 	}
 }

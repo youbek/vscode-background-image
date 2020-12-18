@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as upath from "upath";
+import * as path from "path";
+import * as requireMainFileName from "require-main-filename";
 
 export function activate(context: vscode.ExtensionContext) {
   setNewImage(
@@ -23,7 +25,16 @@ function setNewImage(image: string) {
     return;
   }
 
-  const htmlFile = upath.join("/electron-browser/workbench/workbench.html");
+  const appDir = requireMainFileName();
+  const base = upath.join(
+    appDir,
+    "/resources/app/out/vs/code/electron-browser/workbench"
+  );
+
+  vscode.window.showInformationMessage(appDir);
+
+  const htmlFile = upath.join(base, "workbench.html");
+  const jsFile = upath.join(base, "background-image.js");
 
   try {
     const cssStyles = fs
@@ -40,14 +51,18 @@ function setNewImage(image: string) {
 
     const html = fs.readFileSync(htmlFile, "utf-8");
 
-    // add script tag
-    let output = html.replace(
-      /\<\/html\>/g,
-      `<script>${jsTemplateWithCSS}</script>\n`
-    );
-    output += "</html>";
+    if (!html.includes("background-image.js")) {
+      // add script tag
+      let output = html.replace(
+        /\<\/html\>/g,
+        `<script src="./background-image.js"></script>\n`
+      );
+      output += "</html>";
 
-    fs.writeFileSync(htmlFile, output, "utf-8");
+      fs.writeFileSync(htmlFile, output, "utf-8");
+    }
+
+    fs.writeFileSync(jsFile, jsTemplateWithCSS, "utf-8");
 
     vscode.window
       .showInformationMessage(
@@ -60,17 +75,17 @@ function setNewImage(image: string) {
   } catch (e) {
     vscode.window.showErrorMessage(e.message);
 
-    // if (/ENOENT|EACCES|EPERM/.test(e.code)) {
-    //   vscode.window.showInformationMessage(
-    //     "You must run VS code with admin priviliges in order to enable Neon Dreams."
-    //   );
-    //   return;
-    // } else {
-    //   vscode.window.showErrorMessage(
-    //     "Something went wrong when starting neon dreams"
-    //   );
-    //   return;
-    // }
+    if (/ENOENT|EACCES|EPERM/.test(e.code)) {
+      vscode.window.showInformationMessage(
+        "You must run VS code with admin priviliges in order to enable Neon Dreams."
+      );
+      return;
+    } else {
+      vscode.window.showErrorMessage(
+        "Something went wrong when starting neon dreams"
+      );
+      return;
+    }
   }
 }
 
