@@ -1,3 +1,5 @@
+const images = [];
+
 (function () {
   const bodyNode = document.querySelector("body");
  
@@ -53,3 +55,45 @@
   const observer = new MutationObserver(watchForInitialize);
   observer.observe(bodyNode, { attributes: true });
 })();
+
+function ShortCut(keys) {
+  this._cb = () => {};
+  this._keysSequence = [];
+  this._keys = keys;
+
+  document.addEventListener("keydown", event => {
+    // IF PRESSED KEY IS THE RIGHT KEY (IN SEQUENCE)
+    if(event.key === this._keys[this._keysSequence.length]) {
+      this._keysSequence.push(this._keys[this._keysSequence.length]);
+    }
+    // IF NEXT PRESSED KEY WAS WRONG KEY AND THERE WAS ALREADY A SEQUENCE THEN RESET _keysSequence
+    else if(this._keysSequence.length > 0) {
+      this._keysSequence = [];
+    }
+  });
+
+  document.addEventListener("keyup", event => {
+    // IF PRESSED KEY IN THE SEQUENCE IS RELEASED
+    if(this._keysSequence.includes(event.key)) {
+      // IF ALL KEYS ARE PRESSED IN SEQUENCE THEN RUN CB
+      if(this._keysSequence.length === this._keys.length) {
+        this._cb();
+        this._keysSequence = [];
+      }
+      // IF NOT ALL KEYS ALL PRESSED YET, THEN RESET THE SEQUENCE
+      else {
+        this._keysSequence = [];
+      }
+    }
+  });
+
+  this.on = function (cb) {
+    this._cb = cb;
+  };
+}
+
+const imageShortCut = new ShortCut(["Control", "Alt", "n"]);
+
+imageShortCut.on(() => {
+  console.log("YOU PRESSED THE SHORTCUT LET'S UPDATE THE BACKGROUND!");
+});
